@@ -1,0 +1,15 @@
+{
+    "lr": 2e-4,
+    "weight_decay": 2e-2,
+    "batch_size": 32,
+    "gradient_accumulation_steps": 2,
+    "epochs": 40,
+    "warmup_ratio": 0.1,
+    "lr_scheduler_type": "cosine",
+    "base_model_name": "17_07_2024_08_01_07",
+    "comes_from_phase1": true,
+    "task": "page_classification",
+    "use_undersampler": true,
+    "diff_from_second_class": 2.0,
+    "enable_wandb_logging": false
+}

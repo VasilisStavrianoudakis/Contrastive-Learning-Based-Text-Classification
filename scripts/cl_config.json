@@ -1,0 +1,20 @@
+{
+    "keep_layers": [
+        0,
+        4,
+        8,
+        11
+    ],
+    "lr": 2e-5,
+    "weight_decay": 2e-2,
+    "batch_size": 32,
+    "gradient_accumulation_steps": 2,
+    "epochs": 200,
+    "warmup_ratio": 0.1,
+    "lr_scheduler_type": "constant_with_warmup",
+    "task": "page_classification",
+    "use_undersampler": true,
+    "diff_from_second_class": 2.0,
+    "base_model_path": "nlpaueb/bert-base-greek-uncased-v1",
+    "enable_wandb_logging": false
+}

@@ -1,0 +1,14 @@
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.7.0
+pandas==2.2.1
+numpy==1.26.4
+datasets==2.18.0
+transformers==4.38.2
+scikit-learn==1.4.1.post1
+matplotlib==3.8.3
+accelerate==0.28.0
+wandb==0.16.3
+plotly==5.20.0
+imbalanced-learn==0.12.2
+openpyxl==3.1.2
+pymupdf==1.23.8

@@ -1,10 +1,14 @@
 # 🚀 Contrastive Learning for Text Classification
 
-> **Boost your text classification performance with state-of-the-art contrastive pre-training and asymmetric loss functions**
+<div align="center">
 
 [![Python 3.12](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.7.0+-ee4c2c.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-yellow.svg)](https://huggingface.co/)
+
+*A Supercharged two-phase text classification training pipeline with: contrastive pre-training + asymmetric loss. Perfect for imbalanced datasets!*
+
+</div>
 
 ---
 
@@ -125,7 +129,7 @@ This notebook will help you:
 
 - Pre-process your text data
 - Create train/validation/test splits
-    - Create two validation sets, one for classification and one for contrastive learning, to avoid data leakage.
+  - Create two validation sets, one for classification and one for contrastive learning, to avoid data leakage.
 - Prepare data in the required format
 
 #### 2. (Optional) Phase 1: Contrastive Pre-training
@@ -214,7 +218,7 @@ Track experiments, visualize metrics, and compare runs with Weights & Biases.
 }
 ```
 
-3. Enable logging in config files:
+1. Enable logging in config files:
 
    - Set `"enable_wandb_logging": true` in `cl_config.json` and/or `task_config.json`
 

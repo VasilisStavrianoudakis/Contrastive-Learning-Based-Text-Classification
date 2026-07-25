@@ -1,153 +1,113 @@
-# 🚀 Contrastive Learning for Text Classification
+# Contrastive Learning for Text Classification
 
 <div align="center">
 
-[![Python 3.12](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.7.0+-ee4c2c.svg)](https://pytorch.org/)
 [![HuggingFace](https://img.shields.io/badge/HuggingFace-Transformers-yellow.svg)](https://huggingface.co/)
 
-*A Supercharged two-phase text classification training pipeline with: contrastive pre-training + asymmetric loss. Perfect for imbalanced datasets!*
+*A **two-phase training pipeline** for text classification: **supervised contrastive pre-training**, then classification with **asymmetric loss**. Built with **imbalanced datasets** in mind.*
 
 </div>
 
----
+## At a glance
 
-## ✨ What Makes This Different?
+| Capability | What it does |
+|---|---|
+| **Contrastive pre-training** | Reshapes the base model's embeddings with a supervised contrastive loss before any classifier is attached |
+| **Asymmetric loss** | Counters class imbalance directly in the objective — no resampling hacks required |
+| **Task coverage** | Binary · multiclass · multilabel, out of the box |
+| **Any HF transformer** | Point it at any model on the Hub; built on the `Trainer` API |
+| **Layer control** | Prune to specific layers or freeze layers during training |
+| **Two modes** | Full two-phase run for maximum lift, or Phase 2 alone for a one-command baseline |
+| **Introspection** | A notebook to visualize learned projections and see what the contrastive stage did |
+| **Tracking** | Optional Weights & Biases logging for comparing runs |
 
-Most text classification projects jump straight to fine-tuning pre-trained models. **This repository takes it a step further** by offering a two-phase training approach that can significantly improve your model's performance:
+## Why two phases?
 
-1. **🎯 Phase 1 (Optional):** Further pre-train your base model using **Contrastive Learning** with a custom loss function directly implemented from the [Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning](https://arxiv.org/abs/2011.01403) paper
-2. **📊 Phase 2:** Train your classification model using **Asymmetric Loss** functions designed to combat class imbalance - supporting binary, multiclass, and multilabel tasks. The loss functions are described in the [Asymmetric Loss for Multi-Label Classification](https://arxiv.org/abs/2009.14119) paper and were implemented by [this](https://github.com/Alibaba-MIIL/ASL) repository.
+The usual recipe is to grab a pre-trained transformer and fine-tune it straight away. That's a fine starting point, but you tend to leave performance on the table when your classes are heavily imbalanced or your domain sits far from whatever the base model was trained on.
 
-### 🔑 Key Features
+This repo splits training into **two stages** so you can tackle both problems:
 
-- **Custom Contrastive Loss Implementation** - Direct implementation of the supervised contrastive learning loss from research papers
-- **Asymmetric Loss Functions** - Built-in support for handling imbalanced datasets with binary, multiclass, and multilabel variants
-- **HuggingFace Integration** - Seamlessly works with any pre-trained transformer model. It also builds on the HuggingFace Trainer API.
-- **Model Optimizations** - Prune the model to keep only the specific layers. Freeze specific layers to prevent them from being updated during training.
-- **Flexible Training Pipeline** - Skip Phase 1 if you want to train directly, or use both phases for maximum performance
-- **WandB Support** - Optional experiment tracking and visualization
-- **Visualization Tools** - Notebook included for visualizing model projections
+**Phase 1 (optional)** continues pre-training your base model with *supervised contrastive learning*, using a loss taken directly implemented from [Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning](https://arxiv.org/abs/2011.01403). The goal is a base model with cleaner, more separable representations before you ever attach a classifier.
 
----
+**Phase 2** trains the classifier itself using *asymmetric loss*, which is designed to cope with class imbalance across binary, multiclass, and multilabel tasks. The loss comes from [Asymmetric Loss for Multi-Label Classification](https://arxiv.org/abs/2009.14119); the implementation here is based on the [Alibaba-MIIL/ASL](https://github.com/Alibaba-MIIL/ASL) repo.
 
-## 🏗️ Architecture Overview
+You can run both stages back to back, or **skip Phase 1 entirely** and go straight to a solid Phase 2 baseline.
+
+## Key Features
+
+- A **direct implementation of the supervised contrastive loss** from the paper above, ready to drop into pre-training.
+- **Asymmetric loss functions for imbalanced data**, with binary, multiclass, and multilabel variants.
+- **Works with any pre-trained transformer on the Hub**, and builds on top of the HuggingFace `Trainer` API rather than reinventing the training loop.
+- **Layer pruning and freezing** — trim the model down to specific layers, or hold layers fixed during training.
+- **Run the full two-phase pipeline or just Phase 2**.
+- Optional **Weights & Biases tracking**.
+- A notebook for **visualizing the learned projections**, so you can actually see what the contrastive stage did.
+
+## Architecture Overview
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│                    Pre-trained Model                        │
-│          (e.g., nlpaueb/bert-base-greek-uncased-v1)         │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   Phase 1: Contrastive       │
-        │   Pre-training (Optional)    │
-        │                              │
-        │  Custom Supervised           │
-        │  Contrastive Loss            │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   Enhanced Base Model        │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   Phase 2: Classification    │
-        │   Training                   │
-        │                              │
-        │  Asymmetric Loss             │
-        │  (Handles Class Imbalance)   │
-        └──────────────┬───────────────┘
-                       │
-                       ▼
-        ┌──────────────────────────────┐
-        │   Final Classification Model │
-        └──────────────────────────────┘
+Pre-trained model  (e.g. nlpaueb/bert-base-greek-uncased-v1)
+        │
+        ▼
+Phase 1 — Contrastive pre-training  (optional)
+        │   supervised contrastive loss
+        ▼
+Enhanced base model
+        │
+        ▼
+Phase 2 — Classification training
+        │   asymmetric loss (handles class imbalance)
+        ▼
+Final classification model
 ```
 
----
+## Technical Details
 
-## 📚 Technical Details
+### Phase 1 — Contrastive pre-training
 
-### Phase 1: Contrastive Pre-training
+Supervised contrastive learning shapes the embedding space by pulling samples of the same class together and pushing different classes apart. In practice this gives you representations that a downstream classifier can separate more easily, and it tends to beat plain fine-tuning as a starting point.
 
-We implement the **Supervised Contrastive Learning** approach, which learns better representations by:
+Reference: [Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning](https://arxiv.org/abs/2011.01403)
 
-- Pulling samples from the same class closer together in embedding space
-- Pushing samples from different classes further apart
-- Using a custom loss function that outperforms traditional fine-tuning approaches
+### Phase 2 — Classification with asymmetric loss
 
-**Paper:** [Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning](https://arxiv.org/abs/2011.01403)
+Asymmetric loss treats positive and negative examples differently, which is exactly what you want when some classes are badly underrepresented. It handles binary, multiclass, and multilabel setups and generally trains more stably on skewed data.
 
-### Phase 2: Classification with Asymmetric Loss
+Reference: [Asymmetric Loss for Multi-Label Classification](https://arxiv.org/abs/2009.14119)
 
-The downstream classification phase uses **Asymmetric Loss** functions specifically designed to handle:
+## Built with
 
-- **Class imbalance** - Automatically adjusts for underrepresented classes
-- **Multiple task types** - Binary, multiclass, and multilabel classification
-- **Better convergence** - More stable training on imbalanced datasets
+- **PyTorch** — the underlying deep learning framework
+- **HuggingFace Transformers** — pre-trained models and the `Trainer` API
+- **Weights & Biases** — experiment tracking (optional)
 
-**Paper:** [Asymmetric Loss](https://arxiv.org/abs/2009.14119)
+## Getting started
 
----
-
-## 🛠️ Built With
-
-- **PyTorch** - Deep learning framework
-- **HuggingFace Transformers** - Pre-trained models and Trainer API
-- **Weights & Biases** - Experiment tracking (optional)
-
----
-
-## 🚦 Quick Start
-
-### Prerequisites
-
-Install dependencies:
+### Install
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step-by-Step Guide
-
-#### 1. Prepare Your Data
+### 1. Prepare your data
 
 ```bash
-# Create data directory
 mkdir -p data/raw
-
-# Place your dataset in data/raw
-# Then use the preprocessing notebook
+# drop your dataset into data/raw, then open the prep notebook
 jupyter notebook notebooks/prepare_dataset.ipynb
 ```
 
-This notebook will help you:
+The notebook walks you through pre-processing your text, building train/validation/test splits, and getting everything into the expected format. Note that it creates *two* validation sets — one for classification and one for contrastive learning — so the two phases don't leak into each other.
 
-- Pre-process your text data
-- Create train/validation/test splits
-  - Create two validation sets, one for classification and one for contrastive learning, to avoid data leakage.
-- Prepare data in the required format
-
-#### 2. (Optional) Phase 1: Contrastive Pre-training
-
-Train an enhanced base model using contrastive learning:
+### 2. (Optional) Phase 1 — Contrastive pre-training
 
 ```bash
 python scripts/cl_training.py
 ```
 
-**Configuration:** Edit `scripts/cl_config.json` to customize:
-
-- Learning rate, batch size, epochs
-- Base model path
-- Task-specific parameters
-- WandB logging settings
-
-**Example config:**
+Settings live in `scripts/cl_config.json`: learning rate, batch size, epochs, the base model path, task-specific parameters, and WandB logging. For example:
 
 ```json
 {
@@ -159,17 +119,13 @@ python scripts/cl_training.py
 }
 ```
 
-#### 3. Phase 2: Classification Training
-
-Train your final classification model:
+### 3. Phase 2 — Classification training
 
 ```bash
 python scripts/task_training.py
 ```
 
-**Configuration:** Edit `scripts/task_config.json`:
-
-**If you completed Phase 1:**
+Edit `scripts/task_config.json` to point at the right base model. If you ran Phase 1, feed it that model and flag it accordingly:
 
 ```json
 {
@@ -180,7 +136,7 @@ python scripts/task_training.py
 }
 ```
 
-**If skipping Phase 1 (using HuggingFace model directly):**
+If you skipped Phase 1, just point it at a model from the Hub:
 
 ```json
 {
@@ -191,53 +147,41 @@ python scripts/task_training.py
 }
 ```
 
-#### 4. Visualize Results (Optional)
-
-Explore your model's learned representations:
+### 4. (Optional) Visualize the results
 
 ```bash
 jupyter notebook notebooks/visualize_projections.ipynb
 ```
 
----
+This lets you inspect the representations the model learned — handy for sanity-checking what Phase 1 actually did.
 
-## 📊 WandB Integration (Optional)
+## Weights & Biases (optional)
 
-Track experiments, visualize metrics, and compare runs with Weights & Biases.
+If you want experiment tracking and run comparisons:
 
-### Setup
-
-1. Create an account at [wandb.ai](https://wandb.ai/site)
+1. Grab an account at [wandb.ai](https://wandb.ai/site).
 2. Create `scripts/wandb.json`:
 
-```json
-{
-    "key": "YOUR_API_KEY",
-    "project": "your-project-name",
-    "entity": "your-entity-name"
-}
-```
+   ```json
+   {
+       "key": "YOUR_API_KEY",
+       "project": "your-project-name",
+       "entity": "your-entity-name"
+   }
+   ```
 
-1. Enable logging in config files:
+3. Set `"enable_wandb_logging": true` in `cl_config.json`, `task_config.json`, or both.
 
-   - Set `"enable_wandb_logging": true` in `cl_config.json` and/or `task_config.json`
+## Multilabel Classification Limitation
 
----
-
-## ⚠️ Important Notes
-
-### Multilabel Classification Limitation
-
-The repository currently doesn't **directly** support Phase 1 (contrastive pre-training) for multilabel classification tasks, as the contrastive loss function works with binary and multiclass targets.
+The repository currently doesn't *directly* support Phase 1 (contrastive pre-training) for multilabel classification tasks, as the contrastive loss function works with binary and multiclass targets.
 
 **Workarounds:**
 
 - **Option 1:** Skip Phase 1 and train directly with Phase 2 (multilabel is fully supported here)
 - **Option 2:** Convert multilabel targets to multiclass for Phase 1, then use original multilabel targets in Phase 2 (see [Label Powerset](http://scikit.ml/api/skmultilearn.problem_transform.lp.html))
 
----
-
-## 📁 Project Structure
+## Project layout
 
 ```text
 Contrastive-Learning-Based-Text-Classification/
@@ -260,21 +204,15 @@ Contrastive-Learning-Based-Text-Classification/
 └── requirements.txt
 ```
 
----
+## Where this is useful
 
-## 🎯 Use Cases
+- **Imbalanced text classification**, where a handful of classes dominate and the rest are starved for examples.
+- **Domain adaptation**, when you're pushing a general-purpose model into a specialized field.
+- **Low-resource languages**, where pre-trained coverage is thin and every bit of representation quality helps.
+- **Research and experimentation** with contrastive approaches to classification.
 
-Perfect for:
-
-- **Imbalanced text classification** - When some classes have far fewer examples
-- **Domain adaptation** - Adapting pre-trained models to specific domains
-- **Low-resource languages** - Improving performance on languages with limited pre-trained models
-- **Research** - Experimenting with contrastive learning approaches
-
----
-
-## 📖 References
+## References
 
 - [Supervised Contrastive Learning for Pre-trained Language Model Fine-tuning](https://arxiv.org/abs/2011.01403)
 - [Asymmetric Loss for Multi-Label Classification](https://arxiv.org/abs/2009.14119)
-- [Contrastive Learning Guide](https://encord.com/blog/guide-to-contrastive-learning/)
+- [A guide to contrastive learning](https://encord.com/blog/guide-to-contrastive-learning/)
